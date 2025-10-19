@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>선택과목 뭐하지??</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <style>
+    #btnReload {
+  display: none !important;
+}
+
+    /* secLoad의 왼쪽 칼럼(라벨 + URL)만 통째로 숨김 */
+#secLoad .row > div:first-child { 
+  display: none !important; 
+}
+
+    /* === Brand Bar === */
+.brandbar{
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(255,255,255,.72);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(0,0,0,.05);
+}
+.brand-inner{
+  max-width: 980px; margin: 0 auto; padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.brand-left{ display: flex; align-items: center; gap: 10px; }
+.brand-logo{
+  height: 100px; width: auto; border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  display: block;
+}
+.brand-wordmark{
+  font-weight: 800; font-size: 100px; letter-spacing: .2px;
+  background: linear-gradient(90deg,#6b5cff,#ff5ca0);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.brand-chip{
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 999px;
+  background: #ffe2f0; color: #7a3d5e;
+  border: 1px solid rgba(122,61,94,.15);
+  font-weight: 700; font-size: 12px;
+}
+/* 모바일에서 예쁘게 */
+@media (max-width:720px){
+  .brand-inner{ padding: 10px 12px; }
+}
+
+    :root { --ink:#111; --muted:#666; --brand:#5b6cff; --ok:#1ea672; --warn:#b7791f; --err:#e11d48; }
+    body { font-family: ui-sans-serif,system-ui,AppleSDGothicNeo,"Segoe UI",Roboto,Apple Color Emoji;
+           margin:0; background:#fff0f7; color:var(--ink); }
+    .wrap { max-width: 880px; margin: 20px auto 32px; padding: 0 16px; }
+    h1 { margin: 0 0 8px; font-size: 30px; }
+    .card { background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
+    .pad { padding:18px; }
+    .row { display:grid; grid-template-columns: 1fr auto; gap:10px; align-items:end; }
+    .grid { display:grid; grid-template-columns: 1fr 140px; gap:10px; }
+    .sm { color: var(--muted); font-size: 12px; }
+    label { display:block; font-size: 13px; margin: 10px 0 6px; }
+    input[type="text"], input[type="url"] {
+      width:100%; border:1px solid #d1d5db; border-radius:10px; padding:10px 12px; font-size:14px;
+      outline:none;
+    }
+    input:focus { border-color:var(--brand); box-shadow: 0 0 0 3px rgba(91,108,255,.16); }
+    button { border:0; border-radius:10px; padding:10px 14px; font-weight:600; cursor:pointer; }
+    .primary { background:var(--brand); color:#fff; }
+    .green { background: var(--ok); color:#fff; }
+    .muted { background:#eef1ff; color:#334155; }
+    .ghost { background:#f1f5f9; color:#111827; }
+    .status { font-size: 20px; margin-top:8px; }
+    .status.ok { color: var(--ok); }
+    .status.warn { color: var(--warn); }
+    .status.err { color: var(--err); }
+    .pillbox { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .pill { padding:4px 8px; border-radius:999px; font-size:12px; background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe; cursor:pointer; }
+    table { width:100%; border-collapse: collapse; border-radius: 12px; overflow:hidden; margin-top: 6px; }
+    th, td { text-align:left; padding:10px 12px; border-bottom:1px solid #e5e7eb; vertical-align: top; }
+    thead th { background:#f8fafc; font-size: 13px; }
+    tbody tr:nth-child(odd){ background:#fff; }
+    tbody tr:nth-child(even){ background:#fbfbff; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace; }
+    .anywhere { word-break: break-word; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+    <!-- 브랜드 바 -->
+<div class="brandbar">
+  <div class="brand-inner">
+    <div class="brand-left">
+      <!-- 반드시 이 이미지 태그(src 그대로 사용) -->
+      <img src="https://drive.google.com/thumbnail?id=1WlOO7svUbfCE0fVOfkQWht4en2Rqjs3P" alt="instudygram 로고" class="brand-logo">
+      <span class="brand-wordmark">instudygram</span>
+    </div>
+    <span class="brand-chip">대학/계열 조회기</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <header style="margin-bottom:16px">
+    <h1>선택과목 뭐하지??</h1>
+  </header>
+
+  <!-- 1) 데이터 자동 로드 -->
+  <section class="card pad" id="secLoad">
+    <div class="row">
+      <div>
+        <div class="sm">사용 중인 데이터 URL</div>
+        <div class="mono anywhere" id="dataUrl"></div>
+      </div>
+      <div>
+        <button class="muted" id="btnReload">다시 로드</button>
+      </div>
+    </div>
+    <div id="loadMsg" class="status" style="margin-top:8px;"></div>
+  </section>
+
+  <!-- 2) 조회 UI -->
+  <section class="card pad" style="margin-top:14px">
+    <div class="grid">
+      <div>
+        <label for="inpUniv">대학명</label>
+        <input id="inpUniv" type="text" placeholder="예: 서울대학교" />
+        <div id="univHint" class="status"></div>
+        <div id="univSug" class="pillbox"></div>
+      </div>
+      <div style="align-self:center;">
+        <button id="btnPickUniv" class="primary" disabled
+        style="margin-left:30px">대학 확인</button>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:10px">
+      <div>
+        <label for="inpTrack">계열</label>
+        <input id="inpTrack" type="text" list="dlistTracks" placeholder="위 목록 중 택1" />
+        <datalist id="dlistTracks"></datalist>
+        <div id="trackHint" class="status"></div>
+      </div>
+      <div style="align-self:end;">
+        <button id="btnQuery" class="green" disabled
+        style="margin-bottom: 8px; margin-left: 30px;">조회</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- 3) 결과 -->
+  <section class="card pad" style="margin-top:14px">
+    <div class="sm" style="font-weight:600; margin-bottom:4px">조회 결과 (엑셀 원문)</div>
+    <div id="resultHeader" class="sm"></div>
+    <div id="resultTable"></div>
+    <div id="status" class="status"></div>
+  </section>
+
+
+</div>
+
+<script>
+/* ========= Config ========= */
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSyTVarlNAsYa-wpheAeHPH_E_kIUT3qR-HBuGzRVf1xZ8F9eTGAVmbNmBZrFP6e203hBH3Jlot4jY0/pub?gid=1187152004&single=true&output=csv";
+
+/* ========= State ========= */
+let DF = null;                 // 표준화된 데이터 rows
+let UNIV_KEYS = [];            // 정규화된 대학 키 목록
+let UNIV_KEY_TO_RAWS = {};     // { univ_key: [대표 원문, ...] }
+
+/* ========= Utils ========= */
+function normalize(s){
+  if (s === undefined || s === null) return "";
+  return String(s).replace("\u00A0"," ").replace("\u3000"," ").trim().toLocaleLowerCase();
+}
+function levenshtein(a,b){
+  a=a||""; b=b||"";
+  const m=a.length, n=b.length;
+  if(!m) return n; if(!n) return m;
+  const d=Array.from({length:m+1},()=>Array(n+1).fill(0));
+  for(let i=0;i<=m;i++) d[i][0]=i;
+  for(let j=0;j<=n;j++) d[0][j]=j;
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      const c=a[i-1]===b[j-1]?0:1;
+      d[i][j]=Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+c);
+    }
+  }
+  return d[m][n];
+}
+function similarityRatio(a,b){
+  const L = Math.max((a||"").length, (b||"").length);
+  if (!L) return 1;
+  return 1 - (levenshtein(a,b) / L);
+}
+function getCloseMatches(query, choices, n=5, cutoff=0.5){
+  const scored = choices.map(ch => ({ ch, score: similarityRatio(String(query), String(ch)) }));
+  const filtered = scored.filter(x => x.score >= cutoff);
+  filtered.sort((a,b) => b.score - a.score);
+  return filtered.slice(0,n).map(x => x.ch);
+}
+function escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function dbg(){ /* production: no-op */ }
+
+
+/* ========= Header alias mapping ========= */
+const REQUIRED_COLS = ["대학명","계열","필요 모의고사 성적 (예상)","권장 선택 과목"];
+const ALIAS = {
+  "대학명": ["대학", "학교", "학교명", "대학 명", "univ", "university"],
+  "계열": ["트랙", "학과", "전공", "계열명", "트랙명", "학부"],
+  "필요 모의고사 성적 (예상)": ["필요 모의고사 성적","필요모의고사성적","예상 성적","예상점수","예상 성적(모의)","필요 성적"],
+  "권장 선택 과목": ["권장 과목","권장선택과목","추천 선택 과목","추천 과목","추천과목"]
+};
+function headerNormalize(s){ return String(s||"").replace(/\u00A0|\u3000/g," ").trim().toLocaleLowerCase(); }
+function resolveHeaderMap(headers){
+  const canonByNorm = new Map();
+  for (const canon of REQUIRED_COLS){
+    canonByNorm.set(headerNormalize(canon), canon);
+    for (const a of (ALIAS[canon]||[])) canonByNorm.set(headerNormalize(a), canon);
+  }
+  const map = {};
+  for (const h of headers){
+    const canon = canonByNorm.get(headerNormalize(h));
+    if (canon) map[h] = canon;
+  }
+  const present = new Set(Object.values(map));
+  const missing = REQUIRED_COLS.filter(c => !present.has(c));
+  return { map, missing };
+}
+
+/* ========= DF prep ========= */
+function prepareDF(rows){
+  const df = rows.map(row => {
+    const r = { ...row };
+    r["대학명_raw"] = String(row["대학명"]);
+    r["계열_raw"] = String(row["계열"]);
+    r["대학명"] = normalize(row["대학명"]);
+    r["계열"] = normalize(row["계열"]);
+    r["필요 모의고사 성적 (예상)"] = String(row["필요 모의고사 성적 (예상)"]).trim();
+    r["권장 선택 과목"] = String(row["권장 선택 과목"]).trim();
+    return r;
+  });
+
+  const keySet = new Set();
+  const map = {}; // univ_key -> Set(raws)
+  for (const r of df){
+    keySet.add(r["대학명"]);
+    (map[r["대학명"]] ??= new Set()).add(r["대학명_raw"]);
+  }
+  UNIV_KEYS = Array.from(keySet).sort();
+  UNIV_KEY_TO_RAWS = Object.fromEntries(
+    Object.entries(map).map(([k,set]) => {
+      const arr = Array.from(set);
+      arr.sort((a,b)=>a.length-b.length);
+      return [k, arr];
+    })
+  );
+  DF = df;
+
+  // UI enable + 예시
+  document.getElementById('btnPickUniv').disabled = false;
+  document.getElementById('btnQuery').disabled = false;
+  const samp = Object.values(UNIV_KEY_TO_RAWS).map(a=>a[0]).slice(0,5);
+  document.getElementById('univHint').innerHTML =
+    `<span class="ok">예시</span>: ${escapeHtml(JSON.stringify(samp))}`;
+}
+
+/* ========= Core lookup ========= */
+function lookup(univ_key, track_key){
+  const sub = DF.filter(r => r["대학명"] === univ_key && r["계열"] === track_key);
+  if (sub.length > 0){
+    const seen = new Set();
+    const rows = [];
+    for (const r of sub){
+      const sig = r["필요 모의고사 성적 (예상)"] + "\u0000" + r["권장 선택 과목"];
+      if (!seen.has(sig)){
+        seen.add(sig);
+        rows.push({ need: r["필요 모의고사 성적 (예상)"], rec: r["권장 선택 과목"] });
+      }
+    }
+    return { ok: true, payload: rows };
+  }
+  const uniRows = DF.filter(r => r["대학명"] === univ_key);
+  if (uniRows.length > 0){
+    const tracks = Array.from(new Set(uniRows.map(r => r["계열_raw"]))).sort();
+    return { ok: false, payload: { message: `해당 대학에 요청한 계열 데이터가 없습니다. 가능한 계열: ${JSON.stringify(tracks)}` } };
+  }
+  return { ok: null, payload: { message: "대학을 찾지 못했습니다." } };
+}
+
+/* ========= UI helpers ========= */
+function setLoadMsg(msg, type){ // type: 'ok'|'err'|undefined
+  const el = document.getElementById('loadMsg');
+  el.className = "status " + (type === 'ok' ? 'ok' : type === 'err' ? 'err' : '');
+  el.textContent = msg || '';
+}
+function showStatus(msg, cls){
+  const el = document.getElementById('status');
+  el.className = "status " + (cls || '');
+  el.textContent = msg || '';
+}
+function renderUnivSuggestions(list){
+  const box = document.getElementById('univSug');
+  box.innerHTML = '';
+  if (!list || !list.length) return;
+  for (const name of list){
+    const btn = document.createElement('button');
+    btn.className = 'pill';
+    btn.textContent = name;
+    btn.onclick = () => {
+      document.getElementById('inpUniv').value = name;
+      renderUnivSuggestions([]);
+      document.getElementById('univHint').textContent = '';
+      onPickUniv();
+    };
+    box.appendChild(btn);
+  }
+}
+function renderTable(rows){
+  const el = document.getElementById('resultTable');
+  if (!rows || !rows.length){ el.innerHTML=''; return; }
+  const html = `
+    <table>
+      <thead>
+        <tr>
+          <th>필요 모의고사 성적 (예상)</th>
+          <th>권장 선택 과목</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td class="anywhere">${escapeHtml(r.need)}</td>
+            <td class="anywhere">${escapeHtml(r.rec)}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+  el.innerHTML = html;
+}
+
+/* ========= Handlers ========= */
+function onPickUniv(){
+  if (!DF){ setLoadMsg('[오류] 먼저 데이터를 불러오세요.', 'err'); return; }
+  const univIn = document.getElementById('inpUniv').value.trim();
+  const univKey = normalize(univIn);
+  const univHint = document.getElementById('univHint');
+  const dlist = document.getElementById('dlistTracks');
+
+  document.getElementById('trackHint').textContent = '';
+  dlist.innerHTML = '';
+
+  if (!UNIV_KEYS.includes(univKey)){
+    const allUnivRaws = Array.from(new Set(DF.map(r => r["대학명_raw"]))).sort();
+    const sug = getCloseMatches(univIn, allUnivRaws, 6, 0.45);
+    univHint.innerHTML = `<span class="err">정확히 일치하는 대학이 없습니다.</span> 후보: ${escapeHtml(JSON.stringify(sug))}`;
+    renderUnivSuggestions(sug);
+    return;
+  }
+
+  renderUnivSuggestions([]);
+  const subUni = DF.filter(r => r["대학명"] === univKey);
+  const tracksRaw = Array.from(new Set(subUni.map(r => r["계열_raw"]))).sort();
+  univHint.innerHTML = `<span class="ok" style="color:var(--ok)">가능한 계열</span>: ${escapeHtml(JSON.stringify(tracksRaw))}`;
+  dlist.innerHTML = tracksRaw.map(t => `<option value="${escapeHtml(t)}"></option>`).join('');
+}
+
+function onUnivInput(){
+  if (!DF) return;
+  const univIn = document.getElementById('inpUniv').value.trim();
+  const key = normalize(univIn);
+  if (UNIV_KEYS.includes(key)){ renderUnivSuggestions([]); return; }
+  const allUnivRaws = Array.from(new Set(DF.map(r => r["대학명_raw"]))).sort();
+  const sug = getCloseMatches(univIn, allUnivRaws, 6, 0.45);
+  renderUnivSuggestions(sug);
+}
+
+function onQuery(){
+  if (!DF){ setLoadMsg('[오류] 먼저 데이터를 불러오세요.', 'err'); return; }
+  const univIn = document.getElementById('inpUniv').value.trim();
+  const trackIn = document.getElementById('inpTrack').value.trim();
+  const univKey = normalize(univIn);
+  const trackKey = normalize(trackIn);
+
+  const subUni = DF.filter(r => r["대학명"] === univKey);
+  const resultHeader = document.getElementById('resultHeader');
+  resultHeader.textContent = '';
+  showStatus('');
+
+  if (!UNIV_KEYS.includes(univKey)){
+    const allUnivRaws = Array.from(new Set(DF.map(r => r["대학명_raw"]))).sort();
+    const sug = getCloseMatches(univIn, allUnivRaws, 6, 0.45);
+    showStatus(`대학을 찾지 못했습니다.  후보: ${JSON.stringify(sug)}`, 'err');
+    renderTable([]);
+    return;
+  }
+
+  const trackKeysOfUni = Array.from(new Set(subUni.map(r => r["계열"])));
+  const exactOk = trackKeysOfUni.includes(trackKey);
+  if (!exactOk){
+    const tracksRaw = Array.from(new Set(subUni.map(r => r["계열_raw"]))).sort();
+    const sugT = getCloseMatches(trackIn, tracksRaw, 6, 0.45);
+    document.getElementById('trackHint').innerHTML =
+      `<span class="err">정확히 일치하는 계열이 없습니다.</span> 후보: ${escapeHtml(JSON.stringify(sugT))}`;
+    renderTable([]);
+    return;
+  }
+
+  const { ok, payload } = lookup(univKey, trackKey);
+  if (ok === true){
+    const dispUniv = (UNIV_KEY_TO_RAWS[univKey] || [univIn])[0];
+    let dispTrack = trackIn;
+    const sub = DF.filter(r => r["대학명"] === univKey && r["계열"] === trackKey);
+    if (sub.length > 0) dispTrack = sub[0]["계열_raw"];
+
+    resultHeader.innerHTML =
+      `<div class="sm">[대학] <b>${escapeHtml(dispUniv)}</b>  |  [계열] <b>${escapeHtml(dispTrack)}</b></div>`;
+    renderTable(payload);
+  } else if (ok === false){
+    showStatus(payload.message, 'warn');
+    renderTable([]);
+  } else {
+    const allUnivRaws = Array.from(new Set(DF.map(r => r["대학명_raw"]))).sort();
+    const sug = getCloseMatches(univIn, allUnivRaws, 6, 0.45);
+    showStatus(`${payload.message}  후보: ${JSON.stringify(sug)}`, 'err');
+    renderTable([]);
+  }
+}
+
+/* ========= Loader (Papa Parse) ========= */
+function loadCsvWithPapa(url){
+  document.getElementById('dataUrl').textContent = url;
+  document.getElementById('dataUrl').href = url;
+  setLoadMsg('데이터를 불러오는 중...', null);
+
+  Papa.parse(url, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: (results) => {
+      try{
+        if (!results.data || !results.data.length)
+          throw new Error('데이터가 비어있습니다.');
+        const headers = Object.keys(results.data[0] || {});
+        const { map, missing } = resolveHeaderMap(headers);
+        if (missing.length){
+          throw new Error(`필수 컬럼 누락: ${JSON.stringify(missing)}`);
+        }
+        // remap rows → canonical keys
+        const rows = results.data.map(row => {
+          const out = {};
+          for (const [det, canon] of Object.entries(map)){
+            out[canon] = row[det];
+          }
+          return out;
+        });
+        prepareDF(rows);
+        setLoadMsg(`등록된 대학 수: ${UNIV_KEYS.length}`, 'ok');
+        dbg('Loaded', { rows: rows.length, univCount: UNIV_KEYS.length });
+      }catch(e){
+        setLoadMsg(`[오류] 파싱 실패: ${e.message || e}`, 'err');
+        dbg('ParseError', e.message || e);
+      }
+    },
+    error: (err) => {
+      setLoadMsg(`[오류] 다운로드/파싱 실패: ${err?.message || err}`, 'err');
+      dbg('PapaError', err);
+    }
+  });
+}
+
+/* ========= Wire up ========= */
+document.addEventListener('DOMContentLoaded', () => {
+  loadCsvWithPapa(CSV_URL);
+  document.getElementById('btnReload').addEventListener('click', () => loadCsvWithPapa(CSV_URL));
+  document.getElementById('btnPickUniv').addEventListener('click', onPickUniv);
+  document.getElementById('inpUniv').addEventListener('input', onUnivInput);
+  document.getElementById('btnQuery').addEventListener('click', onQuery);
+});
+
+/* ========= Tiny tests ========= */
+(function runTinyTests(){
+  try{
+    console.assert(normalize('  A\u00A0B  ')==='a b','normalize');
+    console.assert(similarityRatio('서올대','서울대') > 0.5, 'similarity');
+    const cm = getCloseMatches('서올대', ['서울대학교','연세대학교','고려대학교'], 5, 0.4);
+    console.assert(cm.includes('서울대학교'), 'close match contains 서울대학교');
+    console.log('%c[Tests] Passed','color:green');
+  }catch(e){
+    console.warn('[Tests] Failed', e);
+  }
+})();
+</script>
+</body>
+</html>

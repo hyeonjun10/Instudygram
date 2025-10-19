@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 학원</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        :root {
+            --brand-pink: #ffbbdd;
+            --brand-pink-light: #fff0f7;
+            --text-dark: #262626;
+            --text-light: #8e8e8e;
+            --border-color: #dbdbdb;
+        }
+        body, html {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background-color: #fff;
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container { display: flex; height: 100%; }
+        /* Sidebar Styles */
+        .sidebar {
+            width: 240px;
+            background-color: var(--brand-pink-light);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        .sidebar-header { text-align: center; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); }
+        .user-email { font-weight: 600; word-break: break-all; }
+        .sidebar-nav { flex-grow: 1; }
+        .nav-link { display: block; padding: 12px 16px; margin-bottom: 8px; text-decoration: none; color: var(--text-dark); font-weight: 500; border-radius: 8px; transition: background-color 0.2s ease; }
+        .nav-link:hover { background-color: var(--brand-pink); }
+        .nav-link.active { background-color: #fff; font-weight: 600; }
+        #logout-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--brand-pink);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        /* Main Content Styles */
+        .main-content-area {
+            flex-grow: 1;
+            padding: 32px;
+            overflow-y: auto;
+            background-color: #F9F9F9;
+        }
+        .main-header h1 { margin-top: 0; }
+        .academy-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .academy-card {
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        .academy-card h3 { margin-top: 0; }
+        .no-academy-message {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+        }
+        /* Homework Section Styles */
+        .homework-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+        .homework-section h4 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+        .homework-section ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        .homework-section li {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #555;
+            background-color: #fafafa;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .homework-section p {
+            font-size: 14px;
+            color: var(--text-light);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <header class="sidebar-header">
+                <p id="user-email">로딩중...</p>
+            </header>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-link">홈</a>
+                <a href="내 학원.html" class="nav-link active">내 학원 목록</a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logout-btn">로그아웃</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content-area">
+            <div class="main-header">
+                <h1>내 학원😒</h1>
+            </div>
+            <div id="academy-list" class="academy-list">
+                <!-- 학원 목록이 여기에 동적으로 추가됩니다. -->
+                 <p class="no-academy-message">학원 정보를 불러오는 중입니다...</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userEmailEl = document.getElementById('user-email');
+            const logoutBtn = document.getElementById('logout-btn');
+            const academyListEl = document.getElementById('academy-list');
+
+            // --- 로그인 상태 확인 ---
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            if (isLoggedIn !== 'true') {
+                // 로그인 상태가 아니면 로그인 페이지로 강제 이동
+                window.location.href = 'login.html';
+                return; // 아래 코드가 실행되지 않도록 함수 종료
+            }
+
+            // 로그인한 사용자의 이메일을 화면에 표시
+            userEmailEl.textContent = sessionStorage.getItem('userEmail');
+
+            // 로그아웃 버튼을 누르면 로그인 상태를 없애고 페이지 이동
+            logoutBtn.addEventListener('click', () => {
+                sessionStorage.removeItem('isLoggedIn');
+                sessionStorage.removeItem('userEmail');
+                window.location.href = 'login.html';
+            });
+
+            // 임시 학원 데이터 (숙제 정보 추가)
+            const sampleAcademies = [
+                {
+                    name: '더클랩영수학원',
+                    address: '경상남도 거제시 장평4로 65',
+                    subject: '영어, 수학',
+                    homework: [
+                        { title: '쎈 미적분 p.50 ~ p.60 풀기', dueDate: '10월 24일' },
+                        { title: '수능특강 영어독해연습 P.48~50', dueDate: '10월 25일' }
+                    ]
+                },
+                {
+                    name: '미래수학교습소',
+                    address: '경상남도 김해시 능동로 157',
+                    subject: '수학',
+                    homework: [
+                        { title: '일품 미적분 P.12 ~ 30', dueDate: '10월 26일' }
+                    ]
+                },
+                {
+                    name: '맥프라이빗코칭영어교습소',
+                    address: '경상남도 진주시 진양호로 308',
+                    subject: 'TOEIC, TOEFL',
+                    homework: [] // 숙제가 없는 경우
+                }
+            ];
+
+            /**
+             * 임시 학원 데이터를 화면에 표시하는 함수
+             */
+            function displaySampleAcademies() {
+                if (sampleAcademies.length === 0) {
+                    academyListEl.innerHTML = `<p class="no-academy-message">아직 등록된 학원이 없어요!</p>`;
+                    return;
+                }
+                
+                academyListEl.innerHTML = ''; // 기존 목록 초기화
+
+                sampleAcademies.forEach(academyData => {
+                    const card = document.createElement('div');
+                    card.className = 'academy-card';
+
+                    // 숙제 목록을 HTML로 만드는 부분
+                    let homeworkHtml = '';
+                    if (academyData.homework && academyData.homework.length > 0) {
+                        homeworkHtml = '<ul>';
+                        academyData.homework.forEach(hw => {
+                            homeworkHtml += `<li>${hw.title} (마감: ${hw.dueDate})</li>`;
+                        });
+                        homeworkHtml += '</ul>';
+                    } else {
+                        homeworkHtml = '<p>오늘은 숙제가 없습니다!</p>';
+                    }
+
+                    card.innerHTML = `
+                        <div>
+                            <h3>${academyData.name || '이름 없음'}</h3>
+                            <p>${academyData.address || '주소 정보 없음'}</p>
+                            <p><strong>과목:</strong> ${academyData.subject || '정보 없음'}</p>
+                        </div>
+                        <div class="homework-section">
+                            <h4>숙제 목록</h4>
+                            ${homeworkHtml}
+                        </div>
+                    `;
+                    academyListEl.appendChild(card);
+                });
+            }
+
+            // 페이지가 열리면 임시 학원 목록을 바로 보여줌
+            displaySampleAcademies();
+        });
+    </script>
+</body>
+</html>
+

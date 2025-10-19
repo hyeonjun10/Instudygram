@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instudygram</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=712429b47ca6d08d6ef29bd11d28f9d6&libraries=services"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+</head>
+<body>
+    <div id="main-container">
+        <div class="container">
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo"></div>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="index.html" class="nav-link active">홈</a>
+                    <a href="선택과목.html" class="nav-link">선택과목 뭐하지?</a>
+                    <a href="https://huggingface.co/spaces/imhyeonjun10/Instudygram" class="nav-link">우리동네 학원 어디가?</a>
+                    <a href="내 학원.html" class="nav-link">내 학원 보기</a>
+                    <a href="학교홍보.html" class="nav-link">다른학교 둘러보기</a>
+                    <a href="환경설정.html" class="nav-link">환경 설정</a>
+                    <a href="고객센터.html" class="nav-link">고객 센터</a>
+
+                </nav>
+                <div class="sidebar-footer">
+                    <a href="#" title="1908-5232-9228 토스" class="nav-link" >후원하기</a>
+                    <a href="구성원.html" class="nav-link">구성원</a>
+                </div>
+                
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content-area">
+                <div class="filter-container"></div>
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="학원 이름으로 검색...">
+                    <button id="search-button">검색</button>
+                </div>
+                <div class="main-content-wrapper">
+                    <main class="main-content"></main>
+                    <div class="pagination-container">
+                        <div id="pagination" class="pagination"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    
+        <!-- 팝업(모달)을 위한 HTML 구조 -->
+        <div id="profile-modal-overlay" class="modal-overlay hidden">
+            <div id="profile-modal-container" class="modal-container">
+                <button id="modal-close-btn" class="modal-close-btn">&times;</button>
+                <!-- 프로필 정보가 여기에 채워집니다. -->
+                <div class="profile-card-placeholder"></div>
+            </div>
+        </div>
+    
+
+    <script src="script.js"></script>
+</body>
+</html>
+

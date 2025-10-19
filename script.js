@@ -165,3 +165,4 @@ document.addEventListener('DOMContentLoaded', function () {
     (async function init() { try { mainContent.innerHTML = `<p style="text-align:center;">데이터를 불러오는 중...</p>`; const raw = await fetchSheetCsv(CSV_URL); allAcademyData = normalizeRows(raw); setupFilters(); updateView(); } catch (err) { console.error(err); mainContent.innerHTML = `<p style="text-align:center;color:red;">데이터를 불러오지 못했습니다.</p>`; } })();
 });
 
+
